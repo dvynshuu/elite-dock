@@ -69,7 +69,7 @@ export function EditBookmarkModal({ show, bookmark, folders, onClose, onUpdated 
     <div className="modal-backdrop-custom">
       <div className="modal-dialog-custom card-elite" style={{ padding: '2.5rem' }}>
         <div className="flex items-center justify-between mb-8">
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>Edit Asset</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)' }}>Edit Bookmark</h2>
           <button className="btn-elite btn-elite-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }} type="button" onClick={onClose}>
             Close
           </button>
@@ -77,7 +77,7 @@ export function EditBookmarkModal({ show, bookmark, folders, onClose, onUpdated 
 
         <form onSubmit={submit} className="flex-col gap-5">
           <div>
-            <label className="form-label-elite">Asset Title</label>
+            <label className="form-label-elite">Title</label>
             <input
               required
               type="text"
@@ -88,7 +88,7 @@ export function EditBookmarkModal({ show, bookmark, folders, onClose, onUpdated 
           </div>
 
           <div>
-            <label className="form-label-elite">Brief Description</label>
+            <label className="form-label-elite">Description</label>
             <textarea
               className="input-elite"
               style={{ minHeight: '80px', resize: 'vertical' }}
@@ -98,7 +98,7 @@ export function EditBookmarkModal({ show, bookmark, folders, onClose, onUpdated 
           </div>
 
           <div>
-            <label className="form-label-elite">Encapsulated Insights (Notes)</label>
+            <label className="form-label-elite">Why this matters</label>
             <textarea
               className="input-elite"
               style={{ minHeight: '100px', resize: 'vertical' }}
@@ -109,7 +109,7 @@ export function EditBookmarkModal({ show, bookmark, folders, onClose, onUpdated 
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="form-label-elite">Target Folder</label>
+              <label className="form-label-elite">Folder</label>
               <select className="select-elite" value={folderId} onChange={(event) => setFolderId(event.target.value)}>
                 <option value="">No folder</option>
                 {folders.map((folder) => (
@@ -120,7 +120,7 @@ export function EditBookmarkModal({ show, bookmark, folders, onClose, onUpdated 
               </select>
             </div>
             <div>
-              <label className="form-label-elite">Tags (delimited by comma)</label>
+              <label className="form-label-elite">Tags (comma separated)</label>
               <input className="input-elite" value={tags} onChange={(event) => setTags(event.target.value)} />
             </div>
           </div>
@@ -130,7 +130,7 @@ export function EditBookmarkModal({ show, bookmark, folders, onClose, onUpdated 
               Cancel
             </button>
             <button className="btn-elite btn-elite-primary" type="submit" disabled={saving}>
-              {saving ? 'Synchronizing...' : 'Update Asset'}
+              {saving ? 'Saving...' : 'Update Bookmark'}
             </button>
           </div>
         </form>

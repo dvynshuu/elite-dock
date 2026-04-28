@@ -9,14 +9,16 @@ type TopbarProps = {
   query: string;
   onQueryChange: (value: string) => void;
   onAdd: () => void;
-  inputRef?: RefObject<HTMLInputElement>;
+  sort: 'newest' | 'oldest' | 'visited';
+  onSortChange: (value: 'newest' | 'oldest' | 'visited') => void;
+  inputRef?: RefObject<HTMLInputElement | null>;
   user: {
     name: string;
     email: string;
   };
 };
 
-export function Topbar({ query, onQueryChange, onAdd, inputRef, user }: TopbarProps) {
+export function Topbar({ query, onQueryChange, onAdd, sort, onSortChange, inputRef, user }: TopbarProps) {
   const [showDropdown, setShowDropdown] = useState(false);
 
   return (
@@ -26,8 +28,21 @@ export function Topbar({ query, onQueryChange, onAdd, inputRef, user }: TopbarPr
       </div>
 
       <div className="flex items-center gap-6">
+        <select
+          className="select-elite"
+          style={{ minWidth: 180 }}
+          value={sort}
+          aria-label="Sort bookmarks"
+          title="Sort bookmarks"
+          onChange={(event) => onSortChange(event.target.value as 'newest' | 'oldest' | 'visited')}
+        >
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="visited">Most revisited</option>
+        </select>
+
         <button type="button" className="btn-elite btn-elite-primary" style={{ padding: '0.8rem 2rem', fontSize: '0.95rem' }} onClick={onAdd}>
-          <span>Add Asset</span>
+          <span>Save Bookmark</span>
         </button>
 
         <div style={{ position: 'relative' }}>
@@ -68,7 +83,7 @@ export function Topbar({ query, onQueryChange, onAdd, inputRef, user }: TopbarPr
               background: 'var(--bg-glass)',
               backdropFilter: 'blur(24px)',
               boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--border-strong)'
+              border: '2px solid var(--border-strong)'
             }}>
               <div className="flex-col gap-1 mb-5">
                 <p style={{ fontSize: '0.95rem', fontWeight: 800 }}>{user.name}</p>

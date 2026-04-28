@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuthSession } from '@/lib/auth';
 import { createFolder } from '@/lib/database/bookmarks';
 import { prisma } from '@/lib/prisma';
+import { getPublicError, normalizeFolderInput } from '@/lib/validation';
 
 export async function GET() {
   const session = await getAuthSession();
@@ -35,13 +36,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
-    const folder = await createFolder(session.user.id, String(body.name || '').trim(), body.color);
+    const input = normalizeFolderInput(await request.json());
+    const folder = await createFolder(session.user.id, input.name, input.color);
     return NextResponse.json({ folder }, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create folder' },
-      { status: 400 }
-    );
+    const publicError = getPublicError(error);
+    return NextResponse.json({ error: publicError.message }, { status: publicError.status });
   }
 }

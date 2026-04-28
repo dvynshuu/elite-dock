@@ -37,7 +37,7 @@ export function BookmarkCard({
         width: '100%',
         aspectRatio: bookmark.thumbnail ? '1.7/1' : '2.8/1',
         background: 'var(--bg-base)',
-        borderBottom: '1px solid var(--border)',
+        borderBottom: '2px solid var(--border)',
         overflow: 'hidden'
       }}>
         {bookmark.thumbnail ? (
@@ -58,7 +58,7 @@ export function BookmarkCard({
               borderRadius: '12px',
               background: 'white',
               boxShadow: 'var(--shadow-md)',
-              border: '1px solid var(--border)',
+              border: '2px solid var(--border)',
               opacity: 0.95
             }}>
               {bookmark.favicon ? (
@@ -129,6 +129,11 @@ export function BookmarkCard({
               {bookmark.description}
             </p>
           )}
+          {bookmark.notes ? (
+            <p className="text-primary" style={{ fontSize: '0.76rem', lineHeight: 1.5, fontWeight: 700, opacity: 0.85 }}>
+              Why saved: {bookmark.notes}
+            </p>
+          ) : null}
         </div>
 
         {bookmark.tags.length > 0 && (
@@ -140,7 +145,7 @@ export function BookmarkCard({
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 background: 'var(--bg-surface-raised)',
-                border: '1px solid var(--border)',
+                border: '2px solid var(--border)',
                 color: 'var(--text-secondary)',
                 padding: '2px 8px',
                 borderRadius: '6px'
@@ -153,7 +158,7 @@ export function BookmarkCard({
 
         <div className="flex items-center gap-2.5 mt-3" onClick={(e) => e.stopPropagation()}>
           <button type="button" className="btn-elite btn-elite-primary" style={{ flex: 1, padding: '0.6rem', fontSize: '0.8rem' }} onClick={() => onOpen(bookmark)}>
-            Access Asset
+            Open Bookmark
           </button>
           <div className="flex gap-1.5">
             <button type="button" className="btn-elite btn-elite-secondary" style={{ padding: '0.6rem', borderRadius: '10px' }} onClick={() => onEdit(bookmark)}>

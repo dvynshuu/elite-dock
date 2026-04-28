@@ -26,7 +26,7 @@ export function FolderList({ folders, selectedFolderId, onSelect, onDropBookmark
           className={`btn-elite w-full justify-between ${selectedFolderId === folder.id ? 'btn-elite-primary' : 'btn-elite-secondary'}`}
           style={{
             padding: '0.8rem 1.25rem',
-            border: selectedFolderId === folder.id ? 'none' : '1px solid var(--border)',
+            border: selectedFolderId === folder.id ? 'none' : '2px solid var(--border)',
             background: selectedFolderId === folder.id ? 'var(--accent)' : 'transparent',
             color: selectedFolderId === folder.id ? 'white' : 'var(--text-primary)'
           }}

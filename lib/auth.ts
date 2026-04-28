@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
         credentials: {
           email: { label: 'Email', type: 'email', placeholder: 'test@example.com' }
         },
-        async authorize(credentials) {
+        async authorize(credentials: Record<'email', string> | undefined) {
           if (!credentials?.email) return null;
 
           // In dev mode, auto-create user if they don't exist

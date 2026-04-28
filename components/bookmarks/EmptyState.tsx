@@ -1,4 +1,20 @@
-export function EmptyState() {
+type EmptyStateProps = {
+  title?: string;
+  description?: string;
+  primaryActionLabel?: string;
+  secondaryActionLabel?: string;
+  onPrimaryAction?: () => void;
+  onSecondaryAction?: () => void;
+};
+
+export function EmptyState({
+  title = 'Your knowledge hub is empty',
+  description = 'Bring in your first saved resource, add why it matters, and let the app start resurfacing the right things later.',
+  primaryActionLabel,
+  secondaryActionLabel,
+  onPrimaryAction,
+  onSecondaryAction
+}: EmptyStateProps) {
   return (
     <div className="card-elite flex-col items-center justify-center text-center" style={{ padding: '6rem 2rem', gap: '1.5rem', background: 'var(--bg-glass)', borderStyle: 'dashed', borderWidth: '2px', borderColor: 'var(--border-strong)' }}>
       <div style={{
@@ -20,11 +36,25 @@ export function EmptyState() {
         </svg>
       </div>
       <div>
-        <h3 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.75rem', color: 'var(--text-primary)' }}>Your knowledge hub is empty</h3>
+        <h3 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.75rem', color: 'var(--text-primary)' }}>{title}</h3>
         <p className="text-secondary" style={{ maxWidth: 420, fontSize: '1rem', lineHeight: 1.6 }}>
-          Begin curating your digital legacy by adding your first asset. Every great repository starts with a single insight.
+          {description}
         </p>
       </div>
+      {primaryActionLabel || secondaryActionLabel ? (
+        <div className="flex items-center gap-3">
+          {primaryActionLabel ? (
+            <button type="button" className="btn-elite btn-elite-primary" onClick={onPrimaryAction}>
+              {primaryActionLabel}
+            </button>
+          ) : null}
+          {secondaryActionLabel ? (
+            <button type="button" className="btn-elite btn-elite-secondary" onClick={onSecondaryAction}>
+              {secondaryActionLabel}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

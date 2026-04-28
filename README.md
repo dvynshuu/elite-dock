@@ -15,7 +15,7 @@ Elite Dock is a premium, high-fidelity knowledge library designed for profession
 ## 🚀 Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
-- **Database**: PostgreSQL + Prisma ORM
+- **Database**: SQLite (current local setup) + Prisma ORM
 - **Security**: Next-Auth (Email Magic Links + Google OAuth)
 - **Styling**: Custom "Elite Luxe" CSS (globals.css) with high-density grid logic.
 - **Icons**: Lucide React + Premium SVGs
@@ -31,7 +31,7 @@ Elite Dock is a premium, high-fidelity knowledge library designed for profession
    ```bash
    cp .env.example .env.local
    ```
-   *Note: Ensure `DATABASE_URL`, `NEXTAUTH_SECRET`, and OAuth credentials are provided.*
+   *Note: Ensure `NEXTAUTH_SECRET` and OAuth credentials are provided. The current repo is configured to use local SQLite in `prisma/dev.db`.*
 
 3. **Database Ritual**:
    ```bash

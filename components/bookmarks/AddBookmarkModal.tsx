@@ -110,7 +110,8 @@ export function AddBookmarkModal({ show, folders, onClose, onCreated }: AddBookm
     setSaving(false);
 
     if (!response.ok) {
-      pushToast('Failed to create bookmark', 'danger');
+      const errorData = await response.json().catch(() => ({}));
+      pushToast(errorData.error || 'Failed to create bookmark', 'danger');
       return;
     }
 
@@ -133,9 +134,9 @@ export function AddBookmarkModal({ show, folders, onClose, onCreated }: AddBookm
           <div className="flex-col">
             <span className="text-muted uppercase" style={{ fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.1em' }}>Ritual Phase {step}/3</span>
             <h2 style={{ fontSize: '1.6rem', fontWeight: 950, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
-              {step === 1 && "Asset Inbound"}
-              {step === 2 && "Decrypting Metadata"}
-              {step === 3 && "Final Configuration"}
+              {step === 1 && "Save a bookmark"}
+              {step === 2 && "Fetching page details"}
+              {step === 3 && "Why it matters"}
             </h2>
           </div>
           <button className="btn-elite btn-elite-ghost" style={{ padding: '0.5rem', borderRadius: '50%' }} type="button" onClick={onClose}>
@@ -145,9 +146,9 @@ export function AddBookmarkModal({ show, folders, onClose, onCreated }: AddBookm
 
         {step === 1 && (
           <div className="flex-col gap-6 animate-fadeIn">
-            <p className="text-secondary" style={{ fontSize: '0.95rem', lineHeight: 1.6 }}>Initialize the data stream by providing the source URL.</p>
+            <p className="text-secondary" style={{ fontSize: '0.95rem', lineHeight: 1.6 }}>Paste a link and we will pull in the title, summary, and site details for you.</p>
             <div className="form-group-elite">
-              <label className="form-label-elite">Source Origin (URL)</label>
+              <label className="form-label-elite">Bookmark URL</label>
               <input
                 required
                 autoFocus
@@ -157,12 +158,12 @@ export function AddBookmarkModal({ show, folders, onClose, onCreated }: AddBookm
                 value={form.url}
                 onChange={(event) => setField('url', event.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && fetchMeta()}
-                placeholder="https://source.luxury/insight"
+                placeholder="https://example.com/article"
               />
             </div>
             <div className="flex justify-end mt-4">
               <button className="btn-elite btn-elite-primary" style={{ padding: '1rem 2.5rem' }} onClick={fetchMeta}>
-                Begin Inbound
+                Fetch details
               </button>
             </div>
           </div>
@@ -171,7 +172,7 @@ export function AddBookmarkModal({ show, folders, onClose, onCreated }: AddBookm
         {step === 2 && (
           <div className="flex-col items-center justify-center py-10 gap-6 animate-pulse">
             <div style={{ fontSize: '3rem' }}>📡</div>
-            <p style={{ fontWeight: 800, color: 'var(--text-secondary)' }}>Synchronizing with Origin...</p>
+            <p style={{ fontWeight: 800, color: 'var(--text-secondary)' }}>Looking up the page and pulling useful context...</p>
           </div>
         )}
 
@@ -179,7 +180,7 @@ export function AddBookmarkModal({ show, folders, onClose, onCreated }: AddBookm
           <form onSubmit={submit} className="flex-col gap-6 animate-slideUp">
             <div className="grid grid-cols-3 gap-6">
               <div className="form-group-elite" style={{ gridColumn: 'span 2' }}>
-                <label className="form-label-elite">Asset Identity</label>
+                <label className="form-label-elite">Title</label>
                 <input
                   required
                   type="text"
@@ -189,7 +190,7 @@ export function AddBookmarkModal({ show, folders, onClose, onCreated }: AddBookm
                 />
               </div>
               <div className="form-group-elite">
-                <label className="form-label-elite">Repository</label>
+                <label className="form-label-elite">Folder</label>
                 <select
                   className="select-elite"
                   value={form.folderId}
@@ -206,7 +207,7 @@ export function AddBookmarkModal({ show, folders, onClose, onCreated }: AddBookm
             </div>
 
             <div className="form-group-elite">
-              <label className="form-label-elite">Summary Overview</label>
+              <label className="form-label-elite">Description</label>
               <textarea
                 className="input-elite"
                 style={{ minHeight: '80px' }}
@@ -217,7 +218,7 @@ export function AddBookmarkModal({ show, folders, onClose, onCreated }: AddBookm
 
             <div className="grid grid-cols-2 gap-6">
               <div className="form-group-elite">
-                <label className="form-label-elite">Taxonomic Tags</label>
+                <label className="form-label-elite">Tags</label>
                 <input
                   type="text"
                   className="input-elite"
@@ -226,10 +227,10 @@ export function AddBookmarkModal({ show, folders, onClose, onCreated }: AddBookm
                 />
               </div>
               <div className="form-group-elite">
-                <label className="form-label-elite">Internal Documentation</label>
-                <input
-                  type="text"
+                <label className="form-label-elite">Why did you save this?</label>
+                <textarea
                   className="input-elite"
+                  style={{ minHeight: '80px' }}
                   value={form.notes}
                   onChange={(event) => setField('notes', event.target.value)}
                 />
@@ -238,10 +239,10 @@ export function AddBookmarkModal({ show, folders, onClose, onCreated }: AddBookm
 
             <div className="flex justify-end gap-3 mt-4">
               <button className="btn-elite btn-elite-secondary" type="button" onClick={() => setStep(1)}>
-                Reset Origin
+                Back
               </button>
               <button className="btn-elite btn-elite-primary" type="submit" disabled={saving} style={{ minWidth: '180px' }}>
-                {saving ? 'Sealing...' : 'Seal Asset'}
+                {saving ? 'Saving...' : 'Save Bookmark'}
               </button>
             </div>
           </form>

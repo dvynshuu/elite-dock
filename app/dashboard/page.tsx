@@ -1,32 +1,27 @@
 import { getAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
+import { getDashboardInsights, listBookmarks, listCollections } from '@/lib/database/bookmarks';
 
-export default async function DashboardPage({
-  searchParams
-}: {
-  searchParams?: { view?: string };
-}) {
+export default async function DashboardPage(
+  props: {
+    searchParams?: Promise<{ view?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const session = await getAuthSession();
   if (!session?.user?.id) return null;
 
   const userId = session.user.id;
 
-  const [bookmarks, folders, tags, totalCount, favoriteCount, trashCount, mostVisited] = await Promise.all([
-    prisma.bookmark.findMany({
-      where: {
-        userId,
-        isDeleted: searchParams?.view === 'trash'
-      },
-      include: {
-        folder: true,
-        tags: {
-          include: {
-            tag: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
+  const initialView = searchParams?.view === 'trash' ? 'trash' : searchParams?.view === 'today' ? 'today' : 'all';
+
+  const [bookmarkResult, folders, tags, totalCount, favoriteCount, trashCount, mostVisited, collections, insights] = await Promise.all([
+    listBookmarks({
+      userId,
+      includeDeleted: initialView === 'trash',
+      limit: 24,
+      page: 1
     }),
     prisma.folder.findMany({
       where: { userId },
@@ -75,10 +70,12 @@ export default async function DashboardPage({
         visitedCount: 'desc'
       },
       take: 6
-    })
+    }),
+    listCollections(userId),
+    getDashboardInsights(userId)
   ]);
 
-  const serialize = (rows: typeof bookmarks) =>
+  const serialize = <T extends { createdAt: Date }>(rows: T[]) =>
     rows.map((bookmark) => ({
       ...bookmark,
       createdAt: bookmark.createdAt.toISOString()
@@ -86,10 +83,17 @@ export default async function DashboardPage({
 
   return (
     <DashboardShell
-      initialView={searchParams?.view === 'trash' ? 'trash' : 'all'}
-      initialBookmarks={serialize(bookmarks)}
+      initialView={initialView}
+      initialBookmarks={serialize(bookmarkResult.bookmarks)}
+      initialTotalCount={bookmarkResult.totalCount}
+      initialHasMore={bookmarkResult.hasMore}
       folders={folders}
       tags={tags}
+      collections={collections.map((collection: any) => ({
+        ...collection,
+        isPublic: Boolean(collection.isPublic),
+        publicSlug: collection.publicSlug ?? null
+      }))}
       stats={{
         totalCount,
         favoriteCount,
@@ -100,6 +104,11 @@ export default async function DashboardPage({
         email: session.user.email || ''
       }}
       mostVisited={serialize(mostVisited)}
+      insights={{
+        inbox: serialize(insights.inbox),
+        staleFavorites: serialize(insights.staleFavorites),
+        recentlySaved: serialize(insights.recentlySaved)
+      }}
     />
   );
 }

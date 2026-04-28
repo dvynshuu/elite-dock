@@ -5,7 +5,7 @@ import type { RefObject } from 'react';
 type SearchBarProps = {
   value: string;
   onChange: (value: string) => void;
-  inputRef?: RefObject<HTMLInputElement>;
+  inputRef?: RefObject<HTMLInputElement | null>;
 };
 
 export function SearchBar({ value, onChange, inputRef }: SearchBarProps) {
@@ -48,11 +48,11 @@ export function SearchBar({ value, onChange, inputRef }: SearchBarProps) {
         background: 'var(--bg-base)',
         padding: '2px 8px',
         borderRadius: '6px',
-        border: '1px solid var(--border)',
+        border: '2px solid var(--border)',
         pointerEvents: 'none',
         letterSpacing: '0.1em'
       }}>
-        CMD + K
+        /
       </div>
     </div>
   );

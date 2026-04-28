@@ -12,6 +12,15 @@ export type FolderView = {
   _count?: { bookmarks: number };
 };
 
+export type CollectionView = {
+  id: string;
+  name: string;
+  description: string | null;
+  isPublic: boolean;
+  publicSlug: string | null;
+  _count?: { bookmarks: number };
+};
+
 export type BookmarkView = {
   id: string;
   title: string;

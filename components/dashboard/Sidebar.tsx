@@ -20,8 +20,8 @@ type Tag = {
 };
 
 type SidebarProps = {
-  view: 'all' | 'favorites' | 'trash';
-  onViewChange: (view: 'all' | 'favorites' | 'trash') => void;
+  view: 'all' | 'favorites' | 'trash' | 'today';
+  onViewChange: (view: 'all' | 'favorites' | 'trash' | 'today') => void;
   folders: Folder[];
   tags: Tag[];
   selectedFolderId: string | null;
@@ -80,6 +80,17 @@ export function Sidebar({
         <p className="text-muted uppercase mb-4 px-2" style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em' }}>Library</p>
         <button
           type="button"
+          className={`btn-elite w-full justify-between ${view === 'today' ? 'btn-elite-primary' : 'btn-elite-ghost'}`}
+          style={{ padding: '0.7rem 1rem' }}
+          onClick={() => onViewChange('today')}
+        >
+          <div className="flex items-center gap-3">
+            <span style={{ fontSize: '1.1rem' }}>⏺</span>
+            <span style={{ fontWeight: 700 }}>Today</span>
+          </div>
+        </button>
+        <button
+          type="button"
           className={`btn-elite w-full justify-between ${view === 'all' ? 'btn-elite-primary' : 'btn-elite-ghost'}`}
           style={{ padding: '0.7rem 1rem' }}
           onClick={() => onViewChange('all')}
@@ -110,7 +121,7 @@ export function Sidebar({
         >
           <div className="flex items-center gap-3">
             <span style={{ fontSize: '1.1rem' }}>📦</span>
-            <span style={{ fontWeight: 700 }}>Archive</span>
+            <span style={{ fontWeight: 700 }}>Trash</span>
           </div>
           <span style={{ opacity: 0.6, fontSize: '0.8rem' }}>{stats.trashCount}</span>
         </button>

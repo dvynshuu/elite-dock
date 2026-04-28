@@ -30,7 +30,7 @@ export function TagList({ tags, selectedTag, onSelect }: TagListProps) {
             borderRadius: '8px',
             background: selectedTag === tag.name ? 'var(--accent-soft)' : 'var(--bg-surface-raised)',
             color: selectedTag === tag.name ? 'var(--text-primary)' : 'var(--text-secondary)',
-            border: `1px solid ${selectedTag === tag.name ? 'var(--accent-alt)' : 'var(--border)'}`,
+            border: `2px solid ${selectedTag === tag.name ? 'var(--accent-alt)' : 'var(--border)'}`,
             boxShadow: selectedTag === tag.name ? '0 0 10px var(--accent-glow)' : 'none',
             letterSpacing: '0.01em',
             textTransform: 'uppercase'

@@ -4,8 +4,8 @@ import '@/styles/globals.css';
 import { AppProviders } from '@/components/providers/AppProviders';
 
 export const metadata: Metadata = {
-  title: 'Bookmark Manager',
-  description: 'Premium knowledge bookmark manager for developers'
+  title: 'Elite Dock',
+  description: 'A recall-first bookmark workspace that helps saved knowledge get reused'
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getAuthSession } from '@/lib/auth';
 import { createBookmark } from '@/lib/database/bookmarks';
-
-type ImportedBookmark = {
-  title?: string;
-  url?: string;
-  description?: string;
-  tags?: string[];
-};
+import { assertRateLimit } from '@/lib/rate-limit';
+import { getPublicError, normalizeImportInput } from '@/lib/validation';
 
 export async function POST(request: Request) {
   const session = await getAuthSession();
@@ -16,33 +11,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
-    const rows: ImportedBookmark[] = Array.isArray(body.bookmarks) ? body.bookmarks : [];
-
-    if (!rows.length) {
-      return NextResponse.json({ error: 'No bookmarks supplied' }, { status: 400 });
-    }
-
+    assertRateLimit(`bookmark-import:${session.user.id}`, 5, 60_000);
+    const rows = normalizeImportInput(await request.json());
     const created = [];
 
     for (const row of rows) {
-      if (!row.url || !row.title) continue;
-
-      const bookmark = await createBookmark(session.user.id, {
-        title: row.title,
-        url: row.url,
-        description: row.description,
-        tags: row.tags || []
-      });
+      const bookmark = await createBookmark(session.user.id, row);
 
       created.push(bookmark.id);
     }
 
     return NextResponse.json({ imported: created.length });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Import failed' },
-      { status: 400 }
-    );
+    const publicError = getPublicError(error);
+    return NextResponse.json({ error: publicError.message }, { status: publicError.status });
   }
 }

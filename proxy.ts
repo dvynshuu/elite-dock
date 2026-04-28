@@ -4,7 +4,7 @@ import { getToken } from 'next-auth/jwt';
 
 const protectedRoutes = ['/dashboard', '/trash'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!protectedRoutes.some((route) => pathname.startsWith(route))) {

@@ -29,8 +29,8 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
         <h1>{mode === 'login' ? 'Welcome Back' : 'Join the Elite'}</h1>
         <p className="text-secondary">
           {mode === 'login'
-            ? 'Access your premium knowledge hub.'
-            : 'Start curating your digital legacy in a calm workspace.'}
+            ? 'Open the workspace that brings the right saved knowledge back at the right moment.'
+            : 'Import your links, save why they matter, and build a bookmark system you will actually revisit.'}
         </p>
       </div>
 
