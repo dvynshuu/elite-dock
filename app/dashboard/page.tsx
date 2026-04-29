@@ -75,10 +75,10 @@ export default async function DashboardPage(
     getDashboardInsights(userId)
   ]);
 
-  const serialize = <T extends { createdAt: Date }>(rows: T[]) =>
-    rows.map((bookmark) => ({
-      ...bookmark,
-      createdAt: bookmark.createdAt.toISOString()
+  const serialize = (rows: any[]) =>
+    rows.map((row) => ({
+      ...row,
+      createdAt: row.createdAt.toISOString()
     }));
 
   return (

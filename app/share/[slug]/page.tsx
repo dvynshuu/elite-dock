@@ -33,7 +33,7 @@ export default async function SharedCollectionPage(props: { params: Promise<{ sl
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        {board.bookmarks.map((item) => (
+        {board.bookmarks.map((item: any) => (
           <article key={item.bookmarkId} className="card-elite flex-col gap-3" style={{ padding: '1.5rem' }}>
             <div className="flex-col gap-2">
               <span className="text-muted" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>

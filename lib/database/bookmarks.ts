@@ -184,7 +184,7 @@ export async function createBookmark(
       include: bookmarkInclude
     });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && (error as any).code === 'P2002') {
       throw new PublicError('You already saved this URL');
     }
 
@@ -327,7 +327,7 @@ export async function createFolder(userId: string, name: string, color?: string)
       }
     });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && (error as any).code === 'P2002') {
       throw new PublicError('A folder with that name already exists');
     }
 
@@ -452,7 +452,7 @@ export async function listCollections(userId: string) {
     ORDER BY c.isPublic DESC, c.updatedAt DESC
   `;
 
-  return rows.map((row) => ({
+  return rows.map((row: any) => ({
     id: row.id,
     name: row.name,
     description: row.description,
@@ -503,7 +503,7 @@ export async function createCollection(userId: string, payload: { name: string; 
     });
     return getCollectionById(created.id);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && (error as any).code === 'P2002') {
       throw new PublicError('A collection with that name already exists');
     }
 
@@ -556,7 +556,7 @@ export async function addBookmarksToCollection(userId: string, collectionId: str
     }
   });
 
-  const existingIds = new Set(existingLinks.map((item) => item.bookmarkId));
+  const existingIds = new Set(existingLinks.map((item: any) => item.bookmarkId));
   const newIds = ids.filter((id) => !existingIds.has(id));
 
   await prisma.collection.update({
