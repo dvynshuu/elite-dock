@@ -6,3 +6,5 @@ out
 .env.*.local
 coverage
 prisma/migrations
+*.tsbuildinfo
+scratch/
