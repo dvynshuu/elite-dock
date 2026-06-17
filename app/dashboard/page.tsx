@@ -14,9 +14,9 @@ export default async function DashboardPage(
 
   const userId = session.user.id;
 
-  const initialView = searchParams?.view === 'trash' ? 'trash' : searchParams?.view === 'today' ? 'today' : 'all';
+  const initialView = searchParams?.view === 'trash' ? 'trash' : searchParams?.view === 'today' ? 'today' : searchParams?.view === 'notes' ? 'notes' : 'all';
 
-  const [bookmarkResult, folders, tags, totalCount, favoriteCount, trashCount, mostVisited, collections, insights] = await Promise.all([
+  const [bookmarkResult, folders, tags, totalCount, favoriteCount, trashCount, mostVisited, collections, insights, notes] = await Promise.all([
     listBookmarks({
       userId,
       includeDeleted: initialView === 'trash',
@@ -72,7 +72,15 @@ export default async function DashboardPage(
       take: 6
     }),
     listCollections(userId),
-    getDashboardInsights(userId)
+    getDashboardInsights(userId),
+    prisma.note.findMany({
+      where: { userId, isArchived: false },
+      include: { folder: true },
+      orderBy: [
+        { isPinned: 'desc' },
+        { updatedAt: 'desc' }
+      ]
+    })
   ]);
 
   const serialize = (rows: any[]) =>
@@ -81,9 +89,21 @@ export default async function DashboardPage(
       createdAt: row.createdAt.toISOString()
     }));
 
+  const serializeNotes = (rows: any[]) =>
+    rows.map((row) => ({
+      ...row,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+      folder: row.folder ? {
+        id: row.folder.id,
+        name: row.folder.name,
+        color: row.folder.color
+      } : null
+    }));
+
   return (
     <DashboardShell
-      initialView={initialView}
+      initialView={initialView as any}
       initialBookmarks={serialize(bookmarkResult.bookmarks)}
       initialTotalCount={bookmarkResult.totalCount}
       initialHasMore={bookmarkResult.hasMore}
@@ -109,6 +129,7 @@ export default async function DashboardPage(
         staleFavorites: serialize(insights.staleFavorites),
         recentlySaved: serialize(insights.recentlySaved)
       }}
+      initialNotes={serializeNotes(notes)}
     />
   );
 }

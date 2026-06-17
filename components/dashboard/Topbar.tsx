@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { SearchBar } from '@/components/dashboard/SearchBar';
 
 type TopbarProps = {
+  view: 'all' | 'favorites' | 'trash' | 'today' | 'notes';
   query: string;
   onQueryChange: (value: string) => void;
   onAdd: () => void;
@@ -18,32 +19,48 @@ type TopbarProps = {
   };
 };
 
-export function Topbar({ query, onQueryChange, onAdd, sort, onSortChange, inputRef, user }: TopbarProps) {
+export function Topbar({ view, query, onQueryChange, onAdd, sort, onSortChange, inputRef, user }: TopbarProps) {
   const [showDropdown, setShowDropdown] = useState(false);
+
+  const placeholderMap = {
+    all: 'Explore knowledge library...',
+    favorites: 'Search favorites...',
+    today: 'Search inbox...',
+    notes: 'Search notes...',
+    trash: 'Search trash...',
+  };
+  const placeholder = placeholderMap[view] || 'Explore knowledge library...';
+
+  const showSort = view === 'all' || view === 'favorites';
+  const showSave = view === 'all' || view === 'favorites' || view === 'today';
 
   return (
     <header className="flex items-center justify-between gap-10 mb-10 py-2">
       <div style={{ flex: 1, maxWidth: 800 }}>
-        <SearchBar value={query} onChange={onQueryChange} inputRef={inputRef} />
+        <SearchBar value={query} onChange={onQueryChange} inputRef={inputRef} placeholder={placeholder} />
       </div>
 
       <div className="flex items-center gap-6">
-        <select
-          className="select-elite"
-          style={{ minWidth: 180 }}
-          value={sort}
-          aria-label="Sort bookmarks"
-          title="Sort bookmarks"
-          onChange={(event) => onSortChange(event.target.value as 'newest' | 'oldest' | 'visited')}
-        >
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-          <option value="visited">Most revisited</option>
-        </select>
+        {showSort && (
+          <select
+            className="select-elite"
+            style={{ minWidth: 180 }}
+            value={sort}
+            aria-label="Sort bookmarks"
+            title="Sort bookmarks"
+            onChange={(event) => onSortChange(event.target.value as 'newest' | 'oldest' | 'visited')}
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="visited">Most revisited</option>
+          </select>
+        )}
 
-        <button type="button" className="btn-elite btn-elite-primary" style={{ padding: '0.8rem 2rem', fontSize: '0.95rem' }} onClick={onAdd}>
-          <span>Save Bookmark</span>
-        </button>
+        {showSave && (
+          <button type="button" className="btn-elite btn-elite-primary" style={{ padding: '0.8rem 2rem', fontSize: '0.95rem' }} onClick={onAdd}>
+            <span>Save Bookmark</span>
+          </button>
+        )}
 
         <div style={{ position: 'relative' }}>
           <button

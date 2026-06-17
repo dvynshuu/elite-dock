@@ -9,6 +9,7 @@ import { EditBookmarkModal } from '@/components/bookmarks/EditBookmarkModal';
 import { ImportBookmarksModal } from '@/components/bookmarks/ImportBookmarksModal';
 import { TodayPanel } from '@/components/dashboard/TodayPanel';
 import { CollectionsPanel } from '@/components/dashboard/CollectionsPanel';
+import { NotesPanel } from '@/components/dashboard/NotesPanel';
 import { useToast } from '@/components/ui/ToastProvider';
 import { BookmarkView, CollectionView, FolderView } from '@/types/bookmark';
 
@@ -18,8 +19,24 @@ type Tag = {
   _count?: { bookmarks: number };
 };
 
+type NoteView = {
+  id: string;
+  title: string;
+  content: string;
+  color: string;
+  isPinned: boolean;
+  folderId: string | null;
+  folder?: {
+    id: string;
+    name: string;
+    color: string;
+  } | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type DashboardShellProps = {
-  initialView: 'all' | 'trash' | 'today';
+  initialView: 'all' | 'favorites' | 'trash' | 'today' | 'notes';
   initialBookmarks: BookmarkView[];
   initialTotalCount: number;
   initialHasMore: boolean;
@@ -41,6 +58,7 @@ type DashboardShellProps = {
     staleFavorites: BookmarkView[];
     recentlySaved: BookmarkView[];
   };
+  initialNotes: NoteView[];
 };
 
 export function DashboardShell({
@@ -54,9 +72,10 @@ export function DashboardShell({
   stats,
   sessionUser,
   mostVisited,
-  insights
+  insights,
+  initialNotes
 }: DashboardShellProps) {
-  const [view, setView] = useState<'all' | 'favorites' | 'trash' | 'today'>(initialView);
+  const [view, setView] = useState<'all' | 'favorites' | 'trash' | 'today' | 'notes'>(initialView);
   const [bookmarks, setBookmarks] = useState<BookmarkView[]>(initialBookmarks);
   const [foldersState, setFoldersState] = useState(folders);
   const [collectionsState, setCollectionsState] = useState(collections);
@@ -75,8 +94,9 @@ export function DashboardShell({
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [loadingList, setLoadingList] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [activeKeys, setActiveKeys] = useState<{ [key: string]: boolean }>({});
   const { pushToast } = useToast();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const normalizeBookmark = useCallback(
     (bookmark: any) => ({
@@ -87,7 +107,7 @@ export function DashboardShell({
   );
 
   const loadBookmarks = useCallback(async (page = 1, append = false) => {
-    if (view === 'today') return;
+    if (view === 'today' || view === 'notes') return;
 
     const params = new URLSearchParams();
     if (view === 'favorites') params.set('favorites', 'true');
@@ -129,7 +149,7 @@ export function DashboardShell({
   }, [query]);
 
   useEffect(() => {
-    if (view === 'today') return;
+    if (view === 'today' || view === 'notes') return;
     loadBookmarks(1, false);
   }, [view, debouncedQuery, selectedFolderId, selectedTag, sort, loadBookmarks]);
 
@@ -139,26 +159,54 @@ export function DashboardShell({
       const isTyping = ['INPUT', 'TEXTAREA'].includes(target.tagName);
       if (isTyping) return;
 
-      if (event.key === '/') {
-        event.preventDefault();
-        searchInputRef.current?.focus();
-      }
+      const key = event.key.toLowerCase();
+      if (['a', '/', 't', 'u', 'f', 'r', 'k'].includes(key)) {
+        setActiveKeys((prev) => ({ ...prev, [key]: true }));
+        setTimeout(() => {
+          setActiveKeys((prev) => ({ ...prev, [key]: false }));
+        }, 150);
 
-      if (event.key.toLowerCase() === 'a') {
-        event.preventDefault();
-        setShowAddModal(true);
+        if (key === 'a') {
+          event.preventDefault();
+          setShowAddModal(true);
+        } else if (key === '/') {
+          event.preventDefault();
+          searchInputRef.current?.focus();
+        } else if (key === 't') {
+          setView('today');
+        } else if (key === 'u') {
+          setView('all');
+          setSelectedFolderId(null);
+          setSelectedTag(null);
+        } else if (key === 'f') {
+          setView('favorites');
+        } else if (key === 'r') {
+          loadBookmarks(1, false);
+        } else if (key === 'k') {
+          setView('notes');
+        }
       }
     };
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [loadBookmarks]);
 
   const quickAccess = useMemo(
     () => bookmarks.filter((bookmark) => bookmark.isFavorite && !bookmark.isDeleted).slice(0, 5),
     [bookmarks]
   );
   const recentlyAdded = useMemo(() => bookmarks.slice(0, 5), [bookmarks]);
+
+  const filteredNotes = useMemo(() => {
+    if (!debouncedQuery) return initialNotes;
+    const q = debouncedQuery.toLowerCase();
+    return initialNotes.filter(
+      (note) =>
+        note.title.toLowerCase().includes(q) ||
+        note.content.toLowerCase().includes(q)
+    );
+  }, [initialNotes, debouncedQuery]);
 
   const upsertBookmark = (updated: BookmarkView) => {
     setBookmarks((prev) => {
@@ -410,6 +458,7 @@ export function DashboardShell({
 
       <div className="main-content-elite">
         <Topbar
+          view={view}
           query={query}
           onQueryChange={setQuery}
           onAdd={() => setShowAddModal(true)}
@@ -438,33 +487,159 @@ export function DashboardShell({
             </div>
           ) : null}
 
-          {view !== 'trash' && view !== 'today' ? (
+          {view !== 'trash' && view !== 'today' && view !== 'notes' ? (
             <div className="grid grid-cols-3 gap-8">
-              <div className="card-elite flex items-center gap-6" style={{ padding: '2rem' }}>
-                <div style={{ fontSize: '2.5rem', background: 'var(--accent-glow)', width: '64px', height: '64px', display: 'grid', placeItems: 'center', borderRadius: '16px' }}>📚</div>
-                <div className="flex-col">
-                  <p className="text-muted uppercase mb-1" style={{ fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.1em' }}>Total Library</p>
-                  <p style={{ fontSize: '2.2rem', fontWeight: 950, color: 'var(--text-primary)', lineHeight: 1 }}>{statsState.totalCount}</p>
+              {/* Column 1: Library Stats */}
+              <div className="flex-col gap-6" style={{ gridColumn: 'span 1', display: 'flex' }}>
+                <div className="card-elite flex items-center gap-5" style={{ padding: '1.25rem 1.75rem', flex: 1 }}>
+                  <div style={{ background: 'var(--accent-glow)', width: '48px', height: '48px', display: 'grid', placeItems: 'center', borderRadius: '12px', color: 'var(--accent)', boxShadow: 'inset 0 0 8px rgba(255,255,255,0.03)' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+                      <path d="M6 6h10M6 10h10" />
+                    </svg>
+                  </div>
+                  <div className="flex-col">
+                    <p className="text-muted uppercase mb-0.5" style={{ fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.08em' }}>Total Library</p>
+                    <p style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '-0.04em', margin: 0 }}>{statsState.totalCount}</p>
+                  </div>
+                </div>
+                <div className="card-elite flex items-center gap-5" style={{ padding: '1.25rem 1.75rem', flex: 1 }}>
+                  <div style={{ background: 'var(--accent-glow)', width: '48px', height: '48px', display: 'grid', placeItems: 'center', borderRadius: '12px', color: 'var(--accent)', boxShadow: 'inset 0 0 8px rgba(255,255,255,0.03)' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+                    </svg>
+                  </div>
+                  <div className="flex-col">
+                    <p className="text-muted uppercase mb-0.5" style={{ fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.08em' }}>Peak Visited</p>
+                    <p style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '-0.04em', margin: 0 }}>{mostVisited.length}</p>
+                  </div>
                 </div>
               </div>
-              <div className="card-elite flex items-center gap-6" style={{ padding: '2rem' }}>
-                <div style={{ fontSize: '2.5rem', background: 'var(--accent-glow)', width: '64px', height: '64px', display: 'grid', placeItems: 'center', borderRadius: '16px' }}>🔥</div>
-                <div className="flex-col">
-                  <p className="text-muted uppercase mb-1" style={{ fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.1em' }}>Peak Visited</p>
-                  <p style={{ fontSize: '2.2rem', fontWeight: 950, color: 'var(--text-primary)', lineHeight: 1 }}>{mostVisited.length}</p>
+
+              {/* Column 2: Favorites & Boards */}
+              <div className="flex-col gap-6" style={{ gridColumn: 'span 1', display: 'flex' }}>
+                <div className="card-elite flex items-center gap-5" style={{ padding: '1.25rem 1.75rem', flex: 1 }}>
+                  <div style={{ background: 'var(--accent-glow)', width: '48px', height: '48px', display: 'grid', placeItems: 'center', borderRadius: '12px', color: 'var(--accent)', boxShadow: 'inset 0 0 8px rgba(255,255,255,0.03)' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    </svg>
+                  </div>
+                  <div className="flex-col">
+                    <p className="text-muted uppercase mb-0.5" style={{ fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.08em' }}>Quick Access</p>
+                    <p style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '-0.04em', margin: 0 }}>{quickAccess.length}</p>
+                  </div>
+                </div>
+                <div className="card-elite flex items-center gap-5" style={{ padding: '1.25rem 1.75rem', flex: 1 }}>
+                  <div style={{ background: 'var(--accent-glow)', width: '48px', height: '48px', display: 'grid', placeItems: 'center', borderRadius: '12px', color: 'var(--accent)', boxShadow: 'inset 0 0 8px rgba(255,255,255,0.03)' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                      <path d="M12 6v6l4 2" />
+                    </svg>
+                  </div>
+                  <div className="flex-col">
+                    <p className="text-muted uppercase mb-0.5" style={{ fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.08em' }}>Shared Boards</p>
+                    <p style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '-0.04em', margin: 0 }}>{collectionsState.length}</p>
+                  </div>
                 </div>
               </div>
-              <div className="card-elite flex items-center gap-6" style={{ padding: '2rem' }}>
-                <div style={{ fontSize: '2.5rem', background: 'var(--accent-glow)', width: '64px', height: '64px', display: 'grid', placeItems: 'center', borderRadius: '16px' }}>⚡</div>
-                <div className="flex-col">
-                  <p className="text-muted uppercase mb-1" style={{ fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.1em' }}>Quick Access</p>
-                  <p style={{ fontSize: '2.2rem', fontWeight: 950, color: 'var(--text-primary)', lineHeight: 1 }}>{quickAccess.length}</p>
+
+              {/* Column 3: The Command Deck (Key grid) */}
+              <div className="card-elite flex-col gap-3" style={{ gridColumn: 'span 1', padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'center' }}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-muted uppercase" style={{ fontSize: '0.6rem', fontWeight: 900, letterSpacing: '0.08em' }}>COMMAND DECK</span>
+                  <span className="led-indicator led-cyan" style={{ position: 'relative', top: 0, right: 0, width: 6, height: 6 }} />
+                </div>
+                <div className="keycap-container">
+                  <div
+                    className={`keycap ${activeKeys['a'] ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveKeys((prev) => ({ ...prev, a: true }));
+                      setTimeout(() => setActiveKeys((prev) => ({ ...prev, a: false })), 150);
+                      setShowAddModal(true);
+                    }}
+                  >
+                    <span className="led-indicator led-cyan" />
+                    <span className="keycap-legend">A</span>
+                    <span className="keycap-label">Save</span>
+                  </div>
+                  <div
+                    className={`keycap ${activeKeys['/'] ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveKeys((prev) => ({ ...prev, '/': true }));
+                      setTimeout(() => setActiveKeys((prev) => ({ ...prev, '/': false })), 150);
+                      searchInputRef.current?.focus();
+                    }}
+                  >
+                    <span className="led-indicator led-cyan" />
+                    <span className="keycap-legend">/</span>
+                    <span className="keycap-label">Find</span>
+                  </div>
+                  <div
+                    className={`keycap ${activeKeys['t'] ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveKeys((prev) => ({ ...prev, t: true }));
+                      setTimeout(() => setActiveKeys((prev) => ({ ...prev, t: false })), 150);
+                      setView('today');
+                    }}
+                  >
+                    <span className={`led-indicator ${(view as string) === 'today' ? 'led-emerald' : 'led-off'}`} />
+                    <span className="keycap-legend">T</span>
+                    <span className="keycap-label">Today</span>
+                  </div>
+                  <div
+                    className={`keycap ${activeKeys['u'] ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveKeys((prev) => ({ ...prev, u: true }));
+                      setTimeout(() => setActiveKeys((prev) => ({ ...prev, u: false })), 150);
+                      setView('all');
+                      setSelectedFolderId(null);
+                      setSelectedTag(null);
+                    }}
+                  >
+                    <span className={`led-indicator ${view === 'all' && !selectedFolderId && !selectedTag ? 'led-indigo' : 'led-off'}`} />
+                    <span className="keycap-legend">U</span>
+                    <span className="keycap-label">Global</span>
+                  </div>
+                  <div
+                    className={`keycap ${activeKeys['f'] ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveKeys((prev) => ({ ...prev, f: true }));
+                      setTimeout(() => setActiveKeys((prev) => ({ ...prev, f: false })), 150);
+                      setView('favorites');
+                    }}
+                  >
+                    <span className={`led-indicator ${view === 'favorites' ? 'led-amber' : 'led-off'}`} />
+                    <span className="keycap-legend">F</span>
+                    <span className="keycap-label">Favor</span>
+                  </div>
+                  <div
+                    className={`keycap ${activeKeys['k'] ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveKeys((prev) => ({ ...prev, k: true }));
+                      setTimeout(() => setActiveKeys((prev) => ({ ...prev, k: false })), 150);
+                      setView('notes');
+                    }}
+                  >
+                    <span className="led-indicator led-off" />
+                    <span className="keycap-legend">K</span>
+                    <span className="keycap-label">Keep</span>
+                  </div>
                 </div>
               </div>
             </div>
           ) : null}
 
-          {view === 'today' ? (
+          {view === 'notes' ? (
+            <NotesPanel
+              initialNotes={filteredNotes}
+              folders={foldersState}
+              onFolderSelect={(folderId) => {
+                setView('all');
+                setSelectedFolderId(folderId);
+                setSelectedTag(null);
+              }}
+            />
+          ) : view === 'today' ? (
             <>
               <TodayPanel
                 insights={insightsState}
@@ -482,7 +657,7 @@ export function DashboardShell({
             </>
           ) : (
             <>
-              <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center justify-between">
                 <p className="text-secondary" style={{ lineHeight: 1.6 }}>
                   {loadingList
                     ? 'Refreshing results...'
@@ -495,7 +670,7 @@ export function DashboardShell({
                 </button>
               </div>
 
-              <div className="mt-6">
+              <div>
                 <BookmarkGrid
                   bookmarks={bookmarks}
                   selectedIds={selectedIds}

@@ -37,28 +37,42 @@ export function BookmarkCard({
         width: '100%',
         aspectRatio: bookmark.thumbnail ? '1.7/1' : '2.8/1',
         background: 'var(--bg-base)',
-        borderBottom: '2px solid var(--border)',
+        borderBottom: '1px solid var(--border)',
         overflow: 'hidden'
       }}>
         {bookmark.thumbnail ? (
-          <Image
-            src={bookmark.thumbnail}
-            alt={bookmark.title}
-            fill
-            unoptimized
-            className="bookmark-thumb"
-            style={{ objectFit: 'cover', transition: 'transform 0.8s var(--transition-smooth)' }}
-            sizes="(max-width: 640px) 100vw, 320px"
-          />
+          <>
+            <Image
+              src={bookmark.thumbnail}
+              alt={bookmark.title}
+              fill
+              unoptimized
+              className="bookmark-thumb"
+              style={{
+                objectFit: 'cover',
+                transition: 'transform 0.8s var(--transition-smooth)',
+                filter: 'brightness(0.92) contrast(1.02)'
+              }}
+              sizes="(max-width: 640px) 100vw, 320px"
+            />
+            {/* Blend mask to help white-background images integrate with dark theme */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to bottom, rgba(20, 20, 27, 0.02) 0%, rgba(20, 20, 27, 0.22) 100%)',
+              mixBlendMode: 'darken',
+              pointerEvents: 'none'
+            }} />
+          </>
         ) : (
           <div className="flex items-center justify-center w-full h-full" style={{ background: 'linear-gradient(145deg, var(--bg-surface-raised), var(--bg-base))' }}>
             <div className="flex items-center justify-center" style={{
               width: 44,
               height: 44,
               borderRadius: '12px',
-              background: 'white',
+              background: 'var(--bg-surface-raised)',
               boxShadow: 'var(--shadow-md)',
-              border: '2px solid var(--border)',
+              border: '1px solid var(--border-strong)',
               opacity: 0.95
             }}>
               {bookmark.favicon ? (
@@ -93,11 +107,14 @@ export function BookmarkCard({
             style={{
               padding: '0.4rem',
               borderRadius: '50%',
-              background: 'rgba(255,255,255,0.7)',
+              background: 'var(--bg-glass)',
               backdropFilter: 'blur(12px)',
               color: bookmark.isFavorite ? '#eab308' : 'var(--text-muted)',
-              border: '1px solid rgba(255,255,255,0.3)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+              border: '1px solid var(--border-strong)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
             onClick={(e) => { e.stopPropagation(); onToggleFavorite(bookmark); }}
           >

@@ -6,9 +6,10 @@ type SearchBarProps = {
   value: string;
   onChange: (value: string) => void;
   inputRef?: RefObject<HTMLInputElement | null>;
+  placeholder?: string;
 };
 
-export function SearchBar({ value, onChange, inputRef }: SearchBarProps) {
+export function SearchBar({ value, onChange, inputRef, placeholder = "Explore knowledge library..." }: SearchBarProps) {
   return (
     <div style={{ position: 'relative', width: '100%' }}>
       <input
@@ -16,7 +17,7 @@ export function SearchBar({ value, onChange, inputRef }: SearchBarProps) {
         type="search"
         className="input-elite"
         style={{ paddingLeft: '3.5rem', background: 'var(--bg-surface-raised)' }}
-        placeholder="Explore knowledge library..."
+        placeholder={placeholder}
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
